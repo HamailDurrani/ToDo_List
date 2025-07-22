@@ -1,0 +1,95 @@
+﻿@model IEnumerable<ToDo>
+
+    <div class="row">
+        <div class="col-md-2">
+           <form asp-action="ApplyFilters" method="post">
+              <div class="mb-3">
+                  <label class="form-label">Category</label>
+                  <select name="CategoryId" class="form-select" asp-items="@(new SelectList(ViewBag.Categories, "CategoryId", "Name", ViewBag.Filters.CategoryId))">
+                      <option value="all">All</option>
+                  </select>
+              </div>
+
+              <div class="mb-3">
+                  <label class="form-label">Due</label>
+                  <select name="Due" class="form-select" asp-items="@(new SelectList(ViewBag.DueFilters, "Key", "Value", ViewBag.Filters.Due))">
+                      <option value="all">All</option>
+                  </select>
+              </div>
+
+              <div class="mb-3">
+                  <label class="form-label">Status</label>
+                  <select name="StatusId" class="form-select" asp-items="@(new SelectList(ViewBag.Statuses, "StatusId", "Name", ViewBag.Filters.StatusId))">
+                      <option value="all">All</option>
+                  </select>
+              </div>
+
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a asp-action="Index" asp-route-id="" class="btn btn-primary">Clear</a>
+
+           </form>
+
+        </div>
+
+            <div class="col-md-10">
+                <form asp-action="MarkComplete" method="post" asp-route-id = "@ViewBag.Filters.FilterString">
+                  <table class="table table-bordered table-striped mt-2">
+                     <thead>
+                         <tr>
+                             <th>Description</th>
+                             <th>Category</th>
+                             <th>Due Date</th>
+                             <th>Status</th>
+                             <th class="w-25"></th>
+                         </tr>
+                      </thead>
+                      <tbody>
+                         @foreach(ToDo task in Model)
+                        {
+                          string overdue = task.Overdue ? "bg-warning" : "";
+                           <tr>
+                              <td>@task.Description</td>
+                              <td>@task.Category.Name</td>
+                              <td class="@overdue">@task.DueDate?.ToShortDateString()</td>
+                              <td class="@overdue">@task.Status.Name</td>
+                              <td>
+                                  @if(task.StatusId=="open")
+                                  {
+                                      <button type="submit" class="btn btn-primary btn-sm"
+                                       name="@nameof(ToDo.Id)" value="@task.Id">Mark Complete</button>
+                                  }
+                                <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-warning btn-sm ms-2">Edit</a>
+                              </td>
+                           </tr>
+                        }
+                     </tbody>
+                  </table>
+                      <nav aria-label="Page Navigation">
+                         <ul class="pagination justify-content-center">
+                             @if(ViewBag.CurrentPage > 1)
+                             {
+                                <li class="page-item">
+                                   <a class="page-link" asp-action="Index" asp-route-id="@ViewBag.Filters.FilterString" asp-route-page="@ViewBag.CurrentPage - 1">Previous</a>
+                                </li>
+                             }
+                             @for(int i = 1; i <= ViewBag.TotalPages; i++)
+                             {
+                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                   <a class="page-link" asp-action="Index" asp-route-id="@ViewBag.Filters.FilterString" asp-route-page="@i">@i</a>
+                                </li>
+                             }
+                             @if(ViewBag.CurrentPage < ViewBag.TotalPages)
+                             {
+                                <li class="page-item">
+                                   <a class="page-link" asp-action="Index" asp-route-id="@ViewBag.Filters.FilterString" asp-route-page="@ViewBag.CurrentPage + 1">Next</a>
+                                </li>   
+                             }
+                         </ul>
+                      </nav>
+                </form>
+                <form asp-action="DeleteComplete" method="post" asp-route-id="@ViewBag.Filters.FilterString">
+                    <a asp-action="Add" class="btn btn-primary">Add New Task</a>
+                    <button type="submit" class="btn btn-primary">Delete Completed Task</button>
+                </form>
+            </div>
+    </div>
